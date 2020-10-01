@@ -5,15 +5,15 @@
 <body>
     <h1>Air Traffic Control</h1>
     <h3>Create Flight</h3>
-    <form action="/create-flight">
+    <form action="/create-flight" method="post">
         <label for="flightName">Flight Name</label>
-        <input type="text" id="flightName">
+        <input type="text" id="flightName" name="flightName">
         <br/>
         <label for="departureAirport"> Departure Airport </label>
-        <input type="text" id="departureAirport">
+        <input type="text" id="departureAirport" name="departureAirport">
         <br/>
         <label for="arrivalAirport"> Arrival Airport </label>
-        <input type="text" id="arrivalAirport">
+        <input type="text" id="arrivalAirport" name="arrivalAirport">
         <br/>
         <input type="submit" value="Submit">
     </form>
