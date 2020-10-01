@@ -1,0 +1,31 @@
+version: "3.5"
+
+services:
+  postgres:
+    image: library/postgres:10.7
+    container_name: db
+    restart: always
+    environment:
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: keycloak
+
+  keycloak:
+    image: jboss/keycloak
+    container_name: keycloak
+    restart: always
+    environment:
+      KEYCLOAK_LOGLEVEL: ALL
+      DB_VENDOR: postgres
+      DB_ADDR: postgres
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: postgres
+      KEYCLOAK_USER: keycloak
+      KEYCLOAK_PASSWORD: keycloak 
+    depends_on:
+      - postgres
+    ports:
+      - 8080:8080
+      - 8443:8443
+      - 9990:9990
