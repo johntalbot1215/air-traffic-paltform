@@ -4,6 +4,7 @@ __pycache__
 
 HELP.md
 .gradle
+bin
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/

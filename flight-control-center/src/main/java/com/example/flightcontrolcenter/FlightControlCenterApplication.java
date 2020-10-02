@@ -12,9 +12,6 @@ public class FlightControlCenterApplication {
 
 	public static void main(String[] args) {
 		System.out.println("Starting app");
-		logger.info("this is a info message");
-		logger.warn("this is a warn message");
-		logger.error("this is a error message");
 		SpringApplication.run(FlightControlCenterApplication.class, args);
 	}
 
