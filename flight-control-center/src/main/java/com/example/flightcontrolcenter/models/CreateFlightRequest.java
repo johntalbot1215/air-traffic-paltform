@@ -5,6 +5,8 @@ import lombok.Data;
 @Data
 public class CreateFlightRequest {
     private String flightName;
-    private String departureAirport;
-    private String arrivalAirport;
+    private Double startingLongitude;
+    private Double startingLatitude;
+    private Double endingLongitude;
+    private Double endingLatitude;
 }

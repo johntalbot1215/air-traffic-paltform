@@ -3,8 +3,11 @@ package com.example.flightcontrolcenter.simulators;
 import com.example.flightcontrolcenter.models.Flight;
 
 public class FlightSimulator implements Runnable {
+    private Flight flight;
+    public FlightSimulator(Flight flight){
+        this.flight = flight;
+    }
     public void run() {
-        Flight flight = new Flight("Test", new Double[]{0.0,0.0}, new Double[]{5.0,10.0});
         Boolean flightActive = true;
         System.out.println("Simulating flight");
         try {
