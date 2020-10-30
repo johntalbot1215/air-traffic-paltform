@@ -15,6 +15,7 @@ services:
     container_name: keycloak
     restart: always
     environment:
+      KEYCLOAK_FRONTEND_URL: "http://localhost:8080"
       KEYCLOAK_LOGLEVEL: ALL
       DB_VENDOR: postgres
       DB_ADDR: postgres
@@ -28,4 +29,89 @@ services:
     ports:
       - 8080:8080
       - 8443:8443
-      - 9990:9990
+    - 9990:9990
+  zookeeper:
+      image: confluentinc/cp-zookeeper:5.5.0
+      hostname: zookeeper
+      container_name: zookeeper
+      ports:
+        - "2181:2181"
+      environment:
+        ZOOKEEPER_CLIENT_PORT: 2181
+        ZOOKEEPER_TICK_TIME: 2000
+    util:
+      image: ubuntu
+      hostname: ubuntu
+      volumes:
+        - ./bm-kafka:/bm-kafka 
+  
+    broker:
+      image: custom-broker:latest
+      hostname: broker
+      container_name: broker
+      depends_on:
+        - zookeeper
+      ports:
+        - "8090:8090"
+        - "9092:9092"
+        - "9093:9093"
+        - "9094:9094"
+      volumes:
+        - ./kafka-files:/etc/kafka-files/
+      environment:
+        KAFKA_BROKER_ID: 1
+        KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+        KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+        KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+        KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+        KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        KAFKA_LOG4J_ROOT_LOGLEVEL: DEBUG
+        KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+  
+        KAFKA_SASL_ENABLED_MECHANISMS: OAUTHBEARER
+        KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: OAUTHBEARER
+  
+  
+        KAFKA_LISTENERS: INTERNAL://broker:9093,EXTERNAL://broker:9092
+        KAFKA_ADVERTISED_LISTENERS: INTERNAL://broker:9093,EXTERNAL://localhost:9092
+        KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:SASL_PLAINTEXT,EXTERNAL:SASL_PLAINTEXT
+  
+        KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+  
+        #KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.auth.SimpleAclAuthorizer
+  
+        #KAFKA_SUPER_USERS: User:0oa96hr5R8uAnuOXq5d5;
+        KAFKA_SUPER_USERS: User:kafka-broker;
+  
+        KAFKA_LISTENER_NAME_INTERNAL_OAUTHBEARER_SASL_LOGIN_CALLBACK_HANDLER_CLASS: com.oauth2.security.oauthbearer.OAuthAuthenticateLoginCallbackHandler
+  
+        KAFKA_LISTENER_NAME_INTERNAL_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: com.oauth2.security.oauthbearer.OAuthAuthenticateValidatorCallbackHandler
+  
+        KAFKA_LISTENER_NAME_INTERNAL_OAUTHBEARER_SASL_JAAS_CONFIG: " org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
+          OAUTH_WITH_SSL=false \
+          OAUTH_LOGIN_SERVER='keycloak:8080' \
+          OAUTH_LOGIN_ENDPOINT='/auth/realms/kafka/protocol/openid-connect/token' \
+          OAUTH_LOGIN_GRANT_TYPE='client_credentials' \
+          OAUTH_LOGIN_SCOPE='kafka' \
+          OAUTH_AUTHORIZATION='Basic%20${CLIENT_SECRET_BROKER}' \
+          OAUTH_INTROSPECT_SERVER='keycloak:8080' \ 
+          OAUTH_INTROSPECT_ENDPOINT='/auth/realms/kafka/protocol/openid-connect/token/introspect' \
+          OAUTH_INTROSPECT_AUTHORIZATION='Basic%20${CLIENT_SECRET_BROKER}';"
+  
+        KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_LOGIN_CALLBACK_HANDLER_CLASS: com.oauth2.security.oauthbearer.OAuthAuthenticateLoginCallbackHandler
+  
+        KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_SERVER_CALLBACK_HANDLER_CLASS: com.oauth2.security.oauthbearer.OAuthAuthenticateValidatorCallbackHandler
+  
+        KAFKA_LISTENER_NAME_EXTERNAL_OAUTHBEARER_SASL_JAAS_CONFIG: " org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required \
+          OAUTH_WITH_SSL=false \
+          OAUTH_LOGIN_SERVER='keycloak:8080' \
+          OAUTH_LOGIN_ENDPOINT='/auth/realms/kafka/protocol/openid-connect/token' \
+          OAUTH_LOGIN_GRANT_TYPE='client_credentials' \
+          OAUTH_LOGIN_SCOPE='kafka' \
+          OAUTH_AUTHORIZATION='Basic%20${CLIENT_SECRET_BROKER}' \
+          OAUTH_INTROSPECT_SERVER='keycloak:8080' \ 
+          OAUTH_INTROSPECT_ENDPOINT='/auth/realms/kafka/protocol/openid-connect/token/introspect' \
+          OAUTH_INTROSPECT_AUTHORIZATION='Basic%20${CLIENT_SECRET_BROKER}';"
+  
+  
+        EXTRA_ARGS: "-Djava.security.auth.login.config=/etc/kafka-files/kafka_server_jaas.conf"

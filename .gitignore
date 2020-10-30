@@ -1,4 +1,5 @@
 *.config
+*.jar
 venv
 .vscode
 __pycache__
